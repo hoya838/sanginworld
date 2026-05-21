@@ -396,11 +396,11 @@ export default function Home() {
       }))
     }
 
-    // 이미지 1장: Scene 2가 Scene 1 결과에 의존 → 순차 생성
+    // 이미지 1장: 모든 씬이 원본을 ref로 사용 — Scene 1 결과를 Scene 2 ref로 쓰면
+    // 스토리상 Scene 1에 패키지가 없을 때 Scene 2가 원본 패키지 정보를 잃는 문제 방지
     const results: string[] = []
     for (let i = 0; i < imagePrompts.length; i++) {
-      const sceneImageUrl = i > 0 ? results[i - 1] : originalImageUrls[0]
-      results.push(await generateOneImage(model, imagePrompts[i], sceneImageUrl, t0))
+      results.push(await generateOneImage(model, imagePrompts[i], originalImageUrls[0], t0))
     }
     return results
   }
