@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerConfig } from '../../../../lib/config'
+import { getServerConfig } from '../../../../../lib/config'
 
 export async function GET(req: NextRequest) {
   const config = getServerConfig()
