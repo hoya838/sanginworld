@@ -436,7 +436,7 @@ export default function Home() {
     return pollVideoTask(taskId, t0)
   }
 
-  async function pollVideoTask(taskId: string, t0: number, maxWaitMs = 300000) {
+  async function pollVideoTask(taskId: string, t0: number, maxWaitMs = 480000) {
     const start = Date.now()
     await sleep(10000)
     while (Date.now() - start < maxWaitMs) {
@@ -444,21 +444,31 @@ export default function Home() {
       const res: any = await fetch(`/api/kie/video/poll?taskId=${taskId}`).then(r => r.json())
       console.log('[pollVideoTask]', JSON.stringify(res))
       const flag = res?.data?.successFlag
-      if (flag === 1) {
-        const urls = res.data.response?.resultUrls
+      const response = res?.data?.response
+
+      if (flag === 1 || flag === 0) {
+        // resultUrls 우선, 없으면 originUrls 폴백 (kie.ai가 successFlag 업데이트 전에 originUrls를 먼저 채우는 경우 대응)
+        let urls = response?.resultUrls
         let urlArr = urls
         if (typeof urls === 'string') { try { urlArr = JSON.parse(urls) } catch { urlArr = [urls] } }
-        const url = Array.isArray(urlArr) ? urlArr[0] : urlArr
-        if (!url) throw new Error('kie.ai 영상: resultUrls가 비어 있습니다.')
-        return url as string
+        let url = Array.isArray(urlArr) ? urlArr[0] : urlArr
+
+        if (!url) {
+          const origins = response?.originUrls
+          url = Array.isArray(origins) ? origins[0] : origins
+        }
+
+        if (flag === 1 && !url) throw new Error('kie.ai 영상: resultUrls가 비어 있습니다.')
+        if (url) return url as string
       }
+
       if (flag === 2 || flag === 3) {
         const d = res?.data
-        const detail = d?.failMsg || d?.failCode || d?.response?.errorMessage || JSON.stringify(d)
+        const detail = d?.failMsg || d?.failCode || response?.errorMessage || JSON.stringify(d)
         throw new Error(`kie.ai 영상 생성 실패\n${detail}`)
       }
     }
-    throw new Error('kie.ai 영상 작업 시간 초과 (5분)')
+    throw new Error('kie.ai 영상 작업 시간 초과 (8분)')
   }
 
   // ─── HELPERS ───
