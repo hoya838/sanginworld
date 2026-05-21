@@ -548,7 +548,7 @@ export default function Home() {
     // 따옴표 텍스트 / text·label·logo·brand·inscription 묘사 제거
     prompt = prompt
       .replace(/"[^"]{1,80}"/g, '')
-      .replace(/\b(large|small|big)?\s*(black|white|bold|visible|central|printed|front|back|side)?\s*(text|label|logo|brand|inscription)\b[^,]*/gi, '')
+      .replace(/\b(large|small|big|smaller|tiny|bold)?\s*(black|white|bold|visible|central|printed|front|back|side)?\s*(text|label|logo|brand|inscription|characters)\b[^,]*/gi, '')
 
     // 연속 대문자 브랜드명 제거 (예: VAL HYO TOMATO, VALHYO 등)
     prompt = prompt
