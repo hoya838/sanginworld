@@ -90,9 +90,28 @@ export default function Home() {
   }
 
   function readFileAsDataURL(file: File): Promise<string> {
-    return new Promise(res => {
+    return new Promise((res, rej) => {
       const r = new FileReader()
-      r.onload = e => res(e.target!.result as string)
+      r.onload = e => {
+        const original = e.target!.result as string
+        const img = new Image()
+        img.onload = () => {
+          const MAX = 1280
+          let { width, height } = img
+          if (width > MAX || height > MAX) {
+            if (width >= height) { height = Math.round(height * MAX / width); width = MAX }
+            else { width = Math.round(width * MAX / height); height = MAX }
+          }
+          const canvas = document.createElement('canvas')
+          canvas.width = width
+          canvas.height = height
+          canvas.getContext('2d')!.drawImage(img, 0, 0, width, height)
+          res(canvas.toDataURL('image/jpeg', 0.82))
+        }
+        img.onerror = () => res(original)
+        img.src = original
+      }
+      r.onerror = rej
       r.readAsDataURL(file)
     })
   }
