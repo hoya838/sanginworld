@@ -538,10 +538,11 @@ export default function Home() {
     // Color 블록 제거 — "skin tones", "deep black" 등이 Google 오디오 필터 트리거
     prompt = prompt.replace(/,\s*Color:[^,]+(?:,(?!\s*cut\s+to)[^,]+)*/gi, '')
 
-    // 따옴표 포함 텍스트(브랜드명 등) 및 배경 텍스트 묘사 제거 — Google 오디오 필터 방지
+    // 따옴표 포함 텍스트(브랜드명 등) / 텍스트·레이블 묘사 제거 — Google 오디오 필터 방지
+    // "label"은 패키지 인쇄 텍스트로 인식되어 Veo 안전 필터 트리거
     prompt = prompt
       .replace(/"[^"]{1,80}"/g, '')
-      .replace(/\b(large|small|big)?\s*(black|white|bold|visible)?\s*text\b[^,]*/gi, '')
+      .replace(/\b(large|small|big)?\s*(black|white|bold|visible|central|printed|front|back|side)?\s*(text|label|logo|brand|inscription)\b[^,]*/gi, '')
       .replace(/,\s*,/g, ',').replace(/\s{2,}/g, ' ').trim()
 
     return prompt || step2Text.substring(0, 800)
