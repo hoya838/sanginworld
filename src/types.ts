@@ -74,6 +74,7 @@ export interface ImageFingerprint {
     size: string
     dual_structure?: string
     interior_visible: boolean
+    visible_faces?: string
   }
 }
 
