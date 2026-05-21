@@ -40,6 +40,7 @@ export interface ImageFingerprint {
     pose: string
     framing: string
   }
+  shot_composition: string
   background: {
     location: string
     key_elements: string[]
@@ -60,13 +61,19 @@ export interface ImageFingerprint {
     color: string
     size: string
     placement: string
+    visibility: string
     key_features: string[]
   }
   package?: {
     shape: string
     material: string
     label_color: string[]
+    brand_colors: string[]
+    surface_texture: string
+    visual_pattern: string
     size: string
+    dual_structure?: string
+    interior_visible: boolean
   }
 }
 
