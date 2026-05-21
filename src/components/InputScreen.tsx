@@ -22,7 +22,7 @@ interface InputScreenProps {
   showTopicHint: boolean
 }
 
-const TYPE_LABELS = ['감성형', '정보형', '서사형']
+const TYPE_LABELS = ['훅·확산형', '신뢰·전환형', '공감·관계형']
 
 export default function InputScreen({
   ratio, images, description, topics, selectedTopicId,
@@ -162,7 +162,7 @@ export default function InputScreen({
                     className={`topic-card${selectedTopicId === t.id ? ' selected' : ''}`}
                     onClick={() => onTopicSelect(t)}
                   >
-                    <span className="topic-card-badge">{TYPE_LABELS[i] || t.platform}</span>
+                    <span className="topic-card-badge">{t.content_type || TYPE_LABELS[i] || t.platform}</span>
                     <div className="topic-card-title">{t.title}</div>
                     <div className="topic-card-desc">{t.description}</div>
                   </div>
