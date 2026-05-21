@@ -523,26 +523,36 @@ export default function Home() {
 
     const s1 = step2Text.match(/Scene 1\s*\|[^\n]*\n([\s\S]*?)(?:\n---|\nScene 2|$)/)
     const s2 = step2Text.match(/Scene 2\s*\|[^\n]*\n([\s\S]*?)(?:\n---|\nStyle:|$)/)
-    let prompt = charRef ? `Character: ${charRef}. ` : ''
-    if (s1) {
-      const clean = s1[1]
+
+    function cleanScene(raw: string): string {
+      return raw
         .replace(/^Light:.*$/m, '').replace(/^Focus:.*$/m, '').replace(/^Pace:.*$/m, '').trim()
-      prompt = clean.split('\n').filter(l => l.trim()).join(', ')
+        // "same person as Character Reference" → 실제 charRef 값으로 치환
+        .replace(/same person as Character Reference/gi, charRef || '')
+        .split('\n').filter(l => l.trim()).join(', ')
     }
+
+    let scenePart = ''
+    if (s1) scenePart = cleanScene(s1[1])
     if (s2) {
-      const clean = s2[1]
-        .replace(/^Light:.*$/m, '').replace(/^Focus:.*$/m, '').replace(/^Pace:.*$/m, '').trim()
-      const s2clean = clean.split('\n').filter(l => l.trim()).join(', ')
-      if (s2clean) prompt += ', cut to ' + s2clean
+      const s2clean = cleanScene(s2[1])
+      if (s2clean) scenePart += ', cut to ' + s2clean
     }
+
+    // charRef는 scenePart 앞에 한 번만 붙임 (덮어쓰기 버그 수정)
+    let prompt = charRef ? `Character: ${charRef}. ${scenePart}` : scenePart
+
     // Color 블록 제거 — "skin tones", "deep black" 등이 Google 오디오 필터 트리거
     prompt = prompt.replace(/,\s*Color:[^,]+(?:,(?!\s*cut\s+to)[^,]+)*/gi, '')
 
-    // 따옴표 포함 텍스트(브랜드명 등) / 텍스트·레이블 묘사 제거 — Google 오디오 필터 방지
-    // "label"은 패키지 인쇄 텍스트로 인식되어 Veo 안전 필터 트리거
+    // 따옴표 텍스트 / text·label·logo·brand·inscription 묘사 제거
     prompt = prompt
       .replace(/"[^"]{1,80}"/g, '')
       .replace(/\b(large|small|big)?\s*(black|white|bold|visible|central|printed|front|back|side)?\s*(text|label|logo|brand|inscription)\b[^,]*/gi, '')
+
+    // 연속 대문자 브랜드명 제거 (예: VAL HYO TOMATO, VALHYO 등)
+    prompt = prompt
+      .replace(/\b[A-Z]{2,}(?:\s+[A-Z0-9]{2,}){1,4}\b/g, '')
       .replace(/,\s*,/g, ',').replace(/\s{2,}/g, ' ').trim()
 
     return prompt || step2Text.substring(0, 800)
