@@ -20,12 +20,54 @@ export interface Topic {
   tone: string[]
   platform: string
   platform_reason?: string
+  content_type?: string
+  funnel_stage?: string
+  cta?: string
+  content_angle?: string
   key_scenes?: string[]
   story_arc?: StoryArc
   timeline?: Record<string, string>
   emotional_journey?: string
   narrative_hook?: string
   step2_input?: string
+}
+
+export interface ImageFingerprint {
+  subject?: {
+    hair: string
+    outfit: string
+    accessories: string[]
+    pose: string
+    framing: string
+  }
+  background: {
+    location: string
+    key_elements: string[]
+    scale: string
+    depth: string
+  }
+  color_palette: {
+    dominant: string[]
+    temperature: string
+  }
+  lighting: {
+    direction: string
+    quality: string
+  }
+  mood: string[]
+  product?: {
+    name: string
+    color: string
+    size: string
+    placement: string
+    key_features: string[]
+  }
+  package?: {
+    shape: string
+    material: string
+    label_color: string[]
+    size: string
+  }
 }
 
 export interface ImagePrompt {
@@ -55,6 +97,7 @@ export interface AppConfig {
 export interface Prompts {
   step1: string
   step1b: string
+  step1_5: string
   step2: string
   step3: string
 }

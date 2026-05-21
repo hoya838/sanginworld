@@ -194,6 +194,21 @@ export default function Home() {
         if (!topic) throw new Error('STEP 1B: 주제 생성에 실패했습니다.')
       }
 
+      // ── STEP 1.5 ──
+      currentStep = 'step1_5'
+      updateStep(0, 'active', '이미지 시각 속성을 분석하고 있어요.')
+      let fingerprintBlock = ''
+      if (prompts.step1_5) {
+        try {
+          const raw1_5 = await callGemini(config.modelFlash, prompts.step1_5, images)
+          const json1_5 = raw1_5.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
+          JSON.parse(json1_5)
+          fingerprintBlock = `[IMAGE FINGERPRINT]\n${json1_5}\n[/IMAGE FINGERPRINT]\n\n`
+        } catch (e: any) {
+          console.warn('[step1_5] 핑거프린트 분석 실패, 없이 진행:', e.message)
+        }
+      }
+
       // ── STEP 2 ──
       currentStep = 'step2'
       updateStep(0, 'active', '주제와 이미지를 바탕으로 스토리보드를 생성하고 있어요.')
@@ -204,7 +219,7 @@ export default function Home() {
           `- 총 길이: 8s`,
           `- 첫 프레임 이미지: 첨부`,
         ].join('\n')
-        step2Output = await callGemini(config.modelFlash, prompts.step2, images, step2Input)
+        step2Output = await callGemini(config.modelFlash, prompts.step2, images, fingerprintBlock + step2Input)
         if (!step2Output) throw new Error('STEP 2: 스토리보드 생성에 실패했습니다.')
         setGenStep2Output(step2Output)
         setGenVideoPrompt(extractVideoPrompt(step2Output))
@@ -219,7 +234,7 @@ export default function Home() {
         const storyboardBlock = match
           ? '[STORYBOARD → STEP 3]\n' + match[1].trim()
           : step2Output
-        step3Output = await callGemini(config.modelFlash, prompts.step3, images, storyboardBlock)
+        step3Output = await callGemini(config.modelFlash, prompts.step3, images, fingerprintBlock + storyboardBlock)
         if (!step3Output) throw new Error('STEP 3: 이미지 프롬프트 생성에 실패했습니다.')
         setGenStep3Output(step3Output)
         imagePrompts = parseStep3Prompts(step3Output)
