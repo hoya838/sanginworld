@@ -282,21 +282,30 @@ export default function Home() {
         url = await runVideoGeneration(step2Output, referenceImages, ratio, t0, 'veo3_fast')
       } catch (firstErr: any) {
         const isServerErr = (e: any) => e.message?.includes('Internal Error') || e.message?.includes('500')
-        if (!isServerErr(firstErr)) throw firstErr
+        const isAudioErr = (e: any) => e.message?.toLowerCase().includes('audio')
 
-        console.warn('[video] veo3_fast 1차 실패, 10초 후 재시도')
-        updateStep(3, 'active', 'Veo 서버 오류 — 재시도 중...')
-        await sleep(10000)
-
-        try {
+        if (isAudioErr(firstErr)) {
+          console.warn('[video] 오디오 필터 오류, 15초 후 1회 재시도')
+          updateStep(3, 'active', '오디오 필터 오류 — 재시도 중...')
+          await sleep(15000)
           url = await runVideoGeneration(step2Output, referenceImages, ratio, t0, 'veo3_fast')
-        } catch (secondErr: any) {
-          if (!isServerErr(secondErr)) throw secondErr
+        } else if (!isServerErr(firstErr)) {
+          throw firstErr
+        } else {
+          console.warn('[video] veo3_fast 1차 실패, 10초 후 재시도')
+          updateStep(3, 'active', 'Veo 서버 오류 — 재시도 중...')
+          await sleep(10000)
 
-          console.warn('[video] veo3_fast 2차 실패, veo3_lite로 전환')
-          updateStep(3, 'active', 'Veo 서버 오류 — veo3_lite로 전환 중...')
-          await sleep(5000)
-          url = await runVideoGeneration(step2Output, referenceImages, ratio, t0, 'veo3_lite')
+          try {
+            url = await runVideoGeneration(step2Output, referenceImages, ratio, t0, 'veo3_fast')
+          } catch (secondErr: any) {
+            if (!isServerErr(secondErr)) throw secondErr
+
+            console.warn('[video] veo3_fast 2차 실패, veo3_lite로 전환')
+            updateStep(3, 'active', 'Veo 서버 오류 — veo3_lite로 전환 중...')
+            await sleep(5000)
+            url = await runVideoGeneration(step2Output, referenceImages, ratio, t0, 'veo3_lite')
+          }
         }
       }
       updateStep(3, 'done', '영상 생성 완료!', `${Math.round((Date.now() - t0) / 1000)}s`)
