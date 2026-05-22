@@ -381,16 +381,30 @@ export default function Home() {
   async function generateOneImage(model: string, p: ImagePrompt, sceneImageUrl: string | undefined, t0: number): Promise<string> {
     const input = buildImageInput(model, p, sceneImageUrl)
     console.log('[generateOneImage] model:', model, '| ref:', sceneImageUrl ?? '없음')
-    const taskRes = await fetch('/api/kie/image/create', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model, input }),
-    }).then(r => r.json())
-    const taskId = taskRes?.data?.taskId
-    if (!taskId) throw new Error(`kie.ai 이미지: taskId를 받지 못했습니다. 응답: ${JSON.stringify(taskRes)}`)
-    const imgUrl = await pollImageTask(taskId, t0)
-    console.log('[generateOneImage] 생성 URL:', imgUrl)
-    return imgUrl
+
+    const attempt = async () => {
+      const taskRes = await fetch('/api/kie/image/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model, input }),
+      }).then(r => r.json())
+      const taskId = taskRes?.data?.taskId
+      if (!taskId) throw new Error(`kie.ai 이미지: taskId를 받지 못했습니다. 응답: ${JSON.stringify(taskRes)}`)
+      const imgUrl = await pollImageTask(taskId, t0)
+      console.log('[generateOneImage] 생성 URL:', imgUrl)
+      return imgUrl
+    }
+
+    try {
+      return await attempt()
+    } catch (err: any) {
+      if (err.message?.toLowerCase().includes('internal error')) {
+        console.warn('[generateOneImage] 서버 오류, 10초 후 재시도:', err.message)
+        await sleep(10000)
+        return attempt()
+      }
+      throw err
+    }
   }
 
   async function runImageGeneration(imagePrompts: ImagePrompt[], model: string, t0: number, originalImageUrls: string[] = []) {
